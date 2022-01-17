@@ -1,4 +1,4 @@
-module proiectchord
+module github.com/adrgs/proiectchord
 
 go 1.17
 
