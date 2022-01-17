@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  consul:
+    image: consul
+    networks:
+      - proiectchord
+
+networks:
+  proiectchord:
+    name: proiectchord
+    driver: bridge
