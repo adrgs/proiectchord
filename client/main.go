@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	pb "../chordpb"
+	pb "github.com/adrgs/proiectchord/chordpb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 
-	pb "../chordpb"
+	pb "github.com/adrgs/proiectchord/chordpb"
 
 	"google.golang.org/grpc"
 )
