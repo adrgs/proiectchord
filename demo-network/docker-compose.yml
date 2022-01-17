@@ -3,6 +3,8 @@ version: '3.7'
 services:
   consul:
     image: consul
+    ports:
+      - "8500:8500"
     networks:
       - proiectchord
 
@@ -10,3 +12,7 @@ networks:
   proiectchord:
     name: proiectchord
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.10.0/24
