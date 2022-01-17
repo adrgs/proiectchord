@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/adrgs/proiectchord/chord"
 	"github.com/urfave/cli"
 )
 
@@ -21,7 +22,7 @@ func main() {
 	app.Action = func(cli *cli.Context) error { return nil }
 	app.Run(os.Args)
 
-	node := &server.Node{Name: conf.NodeName, Addr: conf.NodeAddr, SDAddress: conf.ServiceDiscoveryAddress}
+	node := &chord.Node{Name: conf.NodeName, Addr: conf.NodeAddr, SDAddress: conf.ServiceDiscoveryAddress}
 
 	node.Start()
 }
