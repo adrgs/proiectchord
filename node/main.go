@@ -48,7 +48,7 @@ func info(node *chord.ChordNode) {
 	fmt.Printf("%s:\n", bold("Finger Table"))
 	fmt.Printf("\t%s %d (successor) -> %d (%s)\n", bold("Finger"), 0, node.FingerTable[0].Id, node.FingerTable[0].Ip)
 	for i := 1; i < chord.CHORD_M; i++ {
-		fmt.Printf("\t%s %d -> %d (%s)\n", bold("Finger"), i, node.FingerTable[i].Id, node.FingerTable[i].Ip)
+		fmt.Printf("\t%s %d (%d) -> %d (%s)\n", bold("Finger"), i, node.FingerStart(i), node.FingerTable[i].Id, node.FingerTable[i].Ip)
 	}
 	fmt.Println()
 }
@@ -85,7 +85,7 @@ func getDHT(node *chord.ChordNode) {
 	val, ok := node.GetChord(key)
 
 	if ok {
-		fmt.Printf("Value found=%v\n", val)
+		fmt.Printf("Value found=%v\n\n", val)
 	} else {
 		fmt.Printf("Value not found\n\n")
 	}
@@ -108,6 +108,8 @@ func storeDHT(node *chord.ChordNode) {
 
 func main() {
 
+	fmt.Printf("Node %s started\n", hostname)
+
 	node, err := chord.NewChordNode(GetOutboundIP())
 
 	if err != nil {
@@ -116,12 +118,20 @@ func main() {
 
 	node.Join()
 
+	info(node)
+
 	var choice int
+
+	meniu()
+	fmt.Printf("Optiune=")
+
 	for {
-		meniu()
-		fmt.Printf("Optiune=")
 		_, err := fmt.Scanf("%d\n", &choice)
-		if err != nil || choice > 4 || choice < 1 {
+
+		if err != nil {
+			continue
+		}
+		if choice > 4 || choice < 1 {
 			node.Leave()
 			fmt.Println("La revedere!")
 			os.Exit(0)
@@ -136,5 +146,7 @@ func main() {
 		case 4:
 			storeDHT(node)
 		}
+		meniu()
+		fmt.Printf("Optiune=")
 	}
 }

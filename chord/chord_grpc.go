@@ -2,6 +2,7 @@ package chord
 
 import (
 	"context"
+	"errors"
 
 	"github.com/adrgs/proiectchord/chordpb"
 )
@@ -67,7 +68,7 @@ func (chordNode *ChordNode) Get(ctx context.Context, getRequest *chordpb.GetRequ
 		return &chordpb.GetReply{Value: val}, nil
 	}
 
-	return nil, nil
+	return &chordpb.GetReply{Value: ""}, errors.New("No value found")
 }
 
 func (chordNode *ChordNode) Store(ctx context.Context, storeRequest *chordpb.StoreRequest) (*chordpb.Nil, error) {

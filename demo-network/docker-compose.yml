@@ -7,6 +7,15 @@ services:
       - "8500:8500"
     networks:
       - proiectchord
+  chordnode:
+    build:
+      context: ../
+      dockerfile: ./demo-network/Dockerfile
+    networks:
+      - proiectchord
+    restart: always
+    depends_on:
+      - consul
 
 networks:
   proiectchord:
