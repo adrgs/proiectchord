@@ -18,7 +18,6 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/adrgs/proiectchord/chordpb"
-	pb "github.com/adrgs/proiectchord/chordpb"
 	"github.com/hashicorp/consul/api"
 )
 
@@ -70,12 +69,12 @@ type ChordNode struct {
 func NewChordNode(ip string) (*ChordNode, error) {
 
 	chordNode := &ChordNode{
-		Node:             &pb.Node{},
+		Node:             &chordpb.Node{},
 		Successor:        nil,
 		SuccessorMutex:   sync.RWMutex{},
 		Predecessor:      nil,
 		PredecessorMutex: sync.RWMutex{},
-		FingerTable:      make([]*pb.Node, CHORD_M),
+		FingerTable:      make([]*chordpb.Node, CHORD_M),
 		FingerTableMutex: sync.RWMutex{},
 		HashTable:        map[string]string{},
 	}
@@ -92,12 +91,12 @@ func NewChordNode(ip string) (*ChordNode, error) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	pb.RegisterChordServiceServer(chordNode.GrpcServer, chordNode)
+	chordpb.RegisterChordServiceServer(chordNode.GrpcServer, chordNode)
 	reflection.Register(chordNode.GrpcServer)
 
 	go chordNode.GrpcServer.Serve(lis)
 
-	if err = chordNode.Join(); err != nil {
+	if err = chordNode.join(); err != nil {
 		log.Fatalf("Failed to join ring: %v", err)
 	}
 
@@ -106,8 +105,8 @@ func NewChordNode(ip string) (*ChordNode, error) {
 		for {
 			select {
 			case <-ticker.C:
-				chordNode.Stabilize()
-				chordNode.FixFingers()
+				chordNode.stabilize()
+				chordNode.fixFingers()
 			}
 		}
 	}()
@@ -115,23 +114,23 @@ func NewChordNode(ip string) (*ChordNode, error) {
 	return chordNode, nil
 }
 
-func (chordNode *ChordNode) Lookup(key string) string {
+func (chordNode *ChordNode) lookup(key string) string {
 	keyHash := ChordHash([]byte(key))
-	successor := chordNode.FindSuccessor(int64(keyHash))
+	successor := chordNode.findSuccessor(int64(keyHash))
 	if successor == nil {
 		return ""
 	}
 	return successor.Ip
 }
 
-func (chordNode *ChordNode) FindSuccessor(id int64) *chordpb.Node {
-	predecessor := chordNode.FindPredecessor(id)
+func (chordNode *ChordNode) findSuccessor(id int64) *chordpb.Node {
+	predecessor := chordNode.findPredecessor(id)
 
 	if predecessor == nil {
 		return nil
 	}
 
-	chordServiceClient, conn := chordNode.ConnectRemote(predecessor.Ip)
+	chordServiceClient, conn := chordNode.connectRemote(predecessor.Ip)
 
 	defer conn.Close()
 
@@ -143,13 +142,13 @@ func (chordNode *ChordNode) FindSuccessor(id int64) *chordpb.Node {
 	return successor
 }
 
-func (chordNode *ChordNode) FindPredecessor(id int64) *chordpb.Node {
-	n := chordNode.ClosestPrecedingFinger(id)
+func (chordNode *ChordNode) findPredecessor(id int64) *chordpb.Node {
+	n := chordNode.closestPrecedingFinger(id)
 	if n.Id == chordNode.Id {
 		return n
 	}
 
-	chordServiceClient, conn := chordNode.ConnectRemote(n.Ip)
+	chordServiceClient, conn := chordNode.connectRemote(n.Ip)
 	nSuccessor, err := chordServiceClient.GetSuccessor(context.Background(), &chordpb.Nil{})
 	conn.Close()
 
@@ -158,7 +157,7 @@ func (chordNode *ChordNode) FindPredecessor(id int64) *chordpb.Node {
 	}
 
 	for !(id > n.Id && id <= nSuccessor.Id) {
-		chordServiceClient, conn = chordNode.ConnectRemote(n.Ip)
+		chordServiceClient, conn = chordNode.connectRemote(n.Ip)
 		n, err = chordServiceClient.ClosestPrecedingFinger(context.Background(), &chordpb.Id{Id: id})
 		conn.Close()
 
@@ -166,7 +165,7 @@ func (chordNode *ChordNode) FindPredecessor(id int64) *chordpb.Node {
 			return nil
 		}
 
-		chordServiceClient, conn = chordNode.ConnectRemote(n.Ip)
+		chordServiceClient, conn = chordNode.connectRemote(n.Ip)
 		nSuccessor, err = chordServiceClient.GetSuccessor(context.Background(), &chordpb.Nil{})
 		conn.Close()
 
@@ -178,7 +177,7 @@ func (chordNode *ChordNode) FindPredecessor(id int64) *chordpb.Node {
 	return n
 }
 
-func (chordNode *ChordNode) ClosestPrecedingFinger(id int64) *chordpb.Node {
+func (chordNode *ChordNode) closestPrecedingFinger(id int64) *chordpb.Node {
 
 	chordNode.FingerTableMutex.RLock()
 	defer chordNode.FingerTableMutex.RUnlock()
@@ -194,7 +193,7 @@ func (chordNode *ChordNode) ClosestPrecedingFinger(id int64) *chordpb.Node {
 	return chordNode.Node
 }
 
-func (chordNode *ChordNode) Join() error {
+func (chordNode *ChordNode) join() error {
 	config := api.DefaultConfig()
 	config.Address = "consul:8500"
 	consul, err := api.NewClient(config)
@@ -207,77 +206,77 @@ func (chordNode *ChordNode) Join() error {
 		return err
 	}
 	if len(nodes) == 0 {
-		chordNode.SetPredecessor(chordNode.Node)
-		chordNode.SetSuccessor(chordNode.Node)
+		chordNode.setPredecessor(chordNode.Node)
+		chordNode.setSuccessor(chordNode.Node)
 		for i := 1; i < CHORD_M; i++ {
-			chordNode.SetFingerTable(i, chordNode.Node)
+			chordNode.setFingerTable(i, chordNode.Node)
 		}
 	}
 
 	ip := strings.Split(nodes[0].Address, ":")[0]
 
-	chordNode.InitFingerTable(ip)
-	chordNode.UpdateOthers()
+	chordNode.initFingerTable(ip)
+	chordNode.updateOthers()
 
 	return nil
 }
 
-func (chordNode *ChordNode) InitFingerTable(ip string) {
-	chordServiceClient, conn := chordNode.ConnectRemote(ip)
+func (chordNode *ChordNode) initFingerTable(ip string) {
+	chordServiceClient, conn := chordNode.connectRemote(ip)
 	defer conn.Close()
 
-	successor, err := chordServiceClient.FindSuccesor(context.Background(), &chordpb.Id{Id: chordNode.Id})
+	successor, err := chordServiceClient.FindSuccessor(context.Background(), &chordpb.Id{Id: chordNode.Id})
 	precSuccessor, err := chordServiceClient.FindPredecessor(context.Background(), &chordpb.Id{Id: successor.Id})
 
 	if successor.Id == chordNode.Id || err != nil {
 		log.Fatalf("ID already in ring (collision): %v", successor.Id)
 	}
 
-	chordNode.SetPredecessor(precSuccessor)
-	chordNode.SetSuccessor(successor)
+	chordNode.setPredecessor(precSuccessor)
+	chordNode.setSuccessor(successor)
 
 	chordServiceClient.SetSuccessor(context.Background(), chordNode.Node)
 
 	for i := 1; i < CHORD_M; i++ {
-		start := chordNode.FingerStart(i)
-		if start >= chordNode.Id && start < chordNode.GetFingerTable(i-1).Id {
-			chordNode.SetFingerTable(i, chordNode.GetFingerTable(i-1))
+		start := chordNode.fingerStart(i)
+		if start >= chordNode.Id && start < chordNode.getFingerTable(i-1).Id {
+			chordNode.setFingerTable(i, chordNode.getFingerTable(i-1))
 		} else {
-			finger, _ := chordServiceClient.FindSuccesor(context.Background(), &chordpb.Id{Id: start})
-			chordNode.SetFingerTable(i, finger)
+			finger, _ := chordServiceClient.FindSuccessor(context.Background(), &chordpb.Id{Id: start})
+			chordNode.setFingerTable(i, finger)
 		}
 	}
 }
 
-func (chordNode *ChordNode) UpdateOthers() {
+func (chordNode *ChordNode) updateOthers() {
 	for i := 0; i < CHORD_M; i++ {
-		p := chordNode.FindPredecessor(chordNode.FingerEnd(i))
-		chordServiceClient, conn := chordNode.ConnectRemote(p.Ip)
+		p := chordNode.findPredecessor(chordNode.fingerEnd(i))
+		chordServiceClient, conn := chordNode.connectRemote(p.Ip)
 		chordServiceClient.UpdateFingerTable(context.Background(), &chordpb.UFTRequest{Node: chordNode.Node, Idx: int64(i)})
 		conn.Close()
 	}
 }
 
-func (chordNode *ChordNode) UpdateFingerTable(uftRequest *chordpb.UFTRequest) {
+func (chordNode *ChordNode) updateFingerTable(uftRequest *chordpb.UFTRequest) {
 	node := uftRequest.Node
 	i := uftRequest.Idx
-	if node.Id >= chordNode.Id && node.Id < chordNode.GetFingerTable(int(i)).Id {
-		chordNode.SetFingerTable(int(i), node)
-		p := chordNode.GetPredecessor()
-		chordServiceClient, conn := chordNode.ConnectRemote(p.Ip)
+	if node.Id >= chordNode.Id && node.Id < chordNode.getFingerTable(int(i)).Id {
+		chordNode.setFingerTable(int(i), node)
+		p := chordNode.getPredecessor()
+		chordServiceClient, conn := chordNode.connectRemote(p.Ip)
 		chordServiceClient.UpdateFingerTable(context.Background(), uftRequest)
 		conn.Close()
 	}
 }
 
-func (chordNode *ChordNode) Stabilize() {
-	successor := chordNode.GetSuccessor()
-	chordServiceClient, conn := chordNode.ConnectRemote(successor.Ip)
+func (chordNode *ChordNode) stabilize() {
+	successor := chordNode.getSuccessor()
+	chordServiceClient, conn := chordNode.connectRemote(successor.Ip)
 	x, err := chordServiceClient.GetPredecessor(context.Background(), &chordpb.Nil{})
 	conn.Close()
 
 	if x == nil && err == nil {
-		chordServiceClient, conn = chordNode.ConnectRemote(successor.Ip)
+		chordServiceClient, conn = chordNode.connectRemote(successor.Ip)
 		chordServiceClient.Notify(context.Background(), chordNode.Node)
 		conn.Close()
 
@@ -285,15 +284,15 @@ func (chordNode *ChordNode) Stabilize() {
 	}
 
 	if x.Id > chordNode.Id && x.Id < successor.Id {
-		chordNode.SetSuccessor(x)
+		chordNode.setSuccessor(x)
 	}
 
-	chordServiceClient, conn = chordNode.ConnectRemote(successor.Ip)
+	chordServiceClient, conn = chordNode.connectRemote(successor.Ip)
 	chordServiceClient.Notify(context.Background(), chordNode.Node)
 	conn.Close()
 }
 
-func (chordNode *ChordNode) Notify(node *chordpb.Node) error {
+func (chordNode *ChordNode) notify(node *chordpb.Node) error {
 	chordNode.PredecessorMutex.Lock()
 	defer chordNode.PredecessorMutex.Unlock()
 
@@ -301,38 +300,38 @@ func (chordNode *ChordNode) Notify(node *chordpb.Node) error {
 		oldPredecessor := chordNode.Predecessor
 		chordNode.Predecessor = node
 		if oldPredecessor != nil {
-			chordNode.TransferKeys(chordNode.Predecessor, oldPredecessor.Id, chordNode.Predecessor.Id)
+			chordNode.transferKeys(chordNode.Predecessor, oldPredecessor.Id, chordNode.Predecessor.Id)
 		}
 	}
 
 	return nil
 }
 
-func (chordNode *ChordNode) FixFingers() {
+func (chordNode *ChordNode) fixFingers() {
 	i := rand.Int() % CHORD_M
-	start := chordNode.FingerStart(i)
+	start := chordNode.fingerStart(i)
 
-	finger := chordNode.FindSuccessor(start)
+	finger := chordNode.findSuccessor(start)
 	if finger != nil {
-		chordNode.SetFingerTable(i, finger)
+		chordNode.setFingerTable(i, finger)
 	}
 }
 
-func (chordNode *ChordNode) FingerStart(i int) int64 {
+func (chordNode *ChordNode) fingerStart(i int) int64 {
 	max := int64(math.Pow(2, float64(CHORD_M)))
 	val := chordNode.Id + int64(math.Pow(2, float64(i)))
 
 	return val % max
 }
 
-func (chordNode *ChordNode) FingerEnd(i int) int64 {
+func (chordNode *ChordNode) fingerEnd(i int) int64 {
 	max := int64(math.Pow(2, float64(CHORD_M)))
 	val := chordNode.Id - int64(math.Pow(2, float64(i)))
 
 	return (val + max) % max
 }
 
-func (chordNode *ChordNode) TransferKeys(node *chordpb.Node, start int64, end int64) {
+func (chordNode *ChordNode) transferKeys(node *chordpb.Node, start int64, end int64) {
 	chordNode.HashTableMutex.Lock()
 	defer chordNode.HashTableMutex.Unlock()
 
@@ -340,7 +339,7 @@ func (chordNode *ChordNode) TransferKeys(node *chordpb.Node, start int64, end in
 		keyHash := int64(ChordHash([]byte(key)))
 		if keyHash > start && keyHash <= end {
 
-			chordServiceClient, conn := chordNode.ConnectRemote(node.Ip)
+			chordServiceClient, conn := chordNode.connectRemote(node.Ip)
 			chordServiceClient.Store(context.Background(), &chordpb.StoreRequest{Key: key, Value: value})
 			conn.Close()
 
@@ -349,48 +348,48 @@ func (chordNode *ChordNode) TransferKeys(node *chordpb.Node, start int64, end in
 	}
 }
 
-func (chordNode *ChordNode) GetSuccessor() *chordpb.Node {
+func (chordNode *ChordNode) getSuccessor() *chordpb.Node {
 	chordNode.SuccessorMutex.RLock()
 	defer chordNode.SuccessorMutex.RUnlock()
 	return chordNode.Successor
 }
 
-func (chordNode *ChordNode) GetPredecessor() *chordpb.Node {
+func (chordNode *ChordNode) getPredecessor() *chordpb.Node {
 	chordNode.PredecessorMutex.RLock()
 	defer chordNode.PredecessorMutex.RUnlock()
 	return chordNode.Predecessor
 }
 
-func (chordNode *ChordNode) SetSuccessor(successorNode *chordpb.Node) {
+func (chordNode *ChordNode) setSuccessor(successorNode *chordpb.Node) {
 	chordNode.SuccessorMutex.Lock()
 	chordNode.Successor = successorNode
 	chordNode.SuccessorMutex.Unlock()
-	chordNode.SetFingerTable(0, successorNode)
+	chordNode.setFingerTable(0, successorNode)
 }
 
-func (chordNode *ChordNode) SetPredecessor(predecessorNode *chordpb.Node) {
+func (chordNode *ChordNode) setPredecessor(predecessorNode *chordpb.Node) {
 	chordNode.PredecessorMutex.Lock()
 	chordNode.Predecessor = predecessorNode
 	chordNode.PredecessorMutex.Unlock()
 }
 
-func (chordNode *ChordNode) SetFingerTable(i int, node *chordpb.Node) {
+func (chordNode *ChordNode) setFingerTable(i int, node *chordpb.Node) {
 	chordNode.FingerTableMutex.Lock()
 	chordNode.FingerTable[i] = node
 	chordNode.FingerTableMutex.Unlock()
 	if i == 0 {
-		chordNode.SetSuccessor(node)
+		chordNode.setSuccessor(node)
 	}
 }
 
-func (chordNode *ChordNode) GetFingerTable(i int) *chordpb.Node {
+func (chordNode *ChordNode) getFingerTable(i int) *chordpb.Node {
 	chordNode.FingerTableMutex.RLock()
 	defer chordNode.FingerTableMutex.RUnlock()
 	return chordNode.FingerTable[i]
 }
 
-func (chordNode *ChordNode) Get(key string) (string, bool) {
-	ip := chordNode.Lookup(key)
+func (chordNode *ChordNode) get(key string) (string, bool) {
+	ip := chordNode.lookup(key)
 	if ip == chordNode.Ip {
 		chordNode.HashTableMutex.RLock()
 		defer chordNode.HashTableMutex.RUnlock()
@@ -398,15 +397,15 @@ func (chordNode *ChordNode) Get(key string) (string, bool) {
 		return val, ok
 	}
 
-	chordServiceClient, conn := chordNode.ConnectRemote(ip)
+	chordServiceClient, conn := chordNode.connectRemote(ip)
 	defer conn.Close()
 	val, err := chordServiceClient.Get(context.Background(), &chordpb.GetRequest{Key: key})
 
 	return val.Value, err == nil
 }
 
-func (chordNode *ChordNode) Store(key string, value string) error {
-	ip := chordNode.Lookup(key)
+func (chordNode *ChordNode) store(key string, value string) error {
+	ip := chordNode.lookup(key)
 	if ip == chordNode.Ip {
 		chordNode.HashTableMutex.Lock()
 		chordNode.HashTable[key] = value
@@ -414,24 +413,24 @@ func (chordNode *ChordNode) Store(key string, value string) error {
 		return nil
 	}
 
-	chordServiceClient, conn := chordNode.ConnectRemote(ip)
+	chordServiceClient, conn := chordNode.connectRemote(ip)
 	defer conn.Close()
 	_, err := chordServiceClient.Store(context.Background(), &chordpb.StoreRequest{Key: key, Value: value})
 
 	return err
 }
 
-func (chordNode *ChordNode) GetFile(path string) ([]byte, bool) {
-	fmt.Println("Get File")
+func (chordNode *ChordNode) getFile(path string) ([]byte, bool) {
+	fmt.Println("get File")
 	return []byte(path), true
 }
 
-func (chordNode *ChordNode) StoreFile(path string, data []byte) error {
-	fmt.Println("Store File")
+func (chordNode *ChordNode) storeFile(path string, data []byte) error {
+	fmt.Println("store File")
 	return nil
 }
 
-func (chordNode *ChordNode) ConnectRemote(ip string) (chordpb.ChordServiceClient, *grpc.ClientConn) {
+func (chordNode *ChordNode) connectRemote(ip string) (chordpb.ChordServiceClient, *grpc.ClientConn) {
 	addr := fmt.Sprintf("%s:13337", ip)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 
@@ -440,7 +439,7 @@ func (chordNode *ChordNode) ConnectRemote(ip string) (chordpb.ChordServiceClient
 		return nil, nil
 	}
 
-	chordServiceClient := pb.NewChordServiceClient(conn)
+	chordServiceClient := chordpb.NewChordServiceClient(conn)
 
 	return chordServiceClient, conn
 }
@@ -518,13 +517,13 @@ func (chordNode *ChordNode) SetupClient(name string, addr string) {
 
 	defer conn.Close()
 
-	node.Peers[name] = pb.NewChordServiceClient(conn)
+	node.Peers[name] = chordpb.NewChordServiceClient(conn)
 
 	response, err := node.Peers[name].SayHello(context.Background(), &pb.ChordRequest{Name: node.Name})
 	if err != nil {
 		log.Printf("Error making request to %s: %v", name, err)
 	}
 
-	log.Printf("Greeting from other node: %s", response.GetMessage())
+	log.Printf("Greeting from other node: %s", response.getMessage())
 }
 */
