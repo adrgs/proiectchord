@@ -40,8 +40,8 @@ func ChordHash(data []byte) int {
 	biti := get_m()
 
 	for bit := 0; bit < biti; bit += 1 {
-		idx := len(hash) - 1 - (bit % 8)
-		rezultat |= int(((hash[idx] >> bit) & 1) << bit)
+		idx := len(hash) - 1 - (bit / 8)
+		rezultat += int(((hash[idx] >> (bit % 8)) & 1)) << bit
 	}
 
 	return rezultat
