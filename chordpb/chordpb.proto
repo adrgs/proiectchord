@@ -9,6 +9,8 @@ service ChordService {
     rpc FindPredecessor(Id) returns (Node);
     rpc ClosestPrecedingFinger(Id) returns (Node);
 
+    rpc Notify(Node) returns (Nil);
+
     rpc GetSuccessor(Nil) returns (Node);
     rpc GetPredecessor(Nil) returns (Node);
 

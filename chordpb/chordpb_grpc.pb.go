@@ -25,6 +25,7 @@ type ChordServiceClient interface {
 	FindSuccesor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
 	FindPredecessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
 	ClosestPrecedingFinger(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
+	Notify(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
 	GetSuccessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error)
 	GetPredecessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error)
 	SetSuccessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
@@ -64,6 +65,15 @@ func (c *chordServiceClient) FindPredecessor(ctx context.Context, in *Id, opts .
 func (c *chordServiceClient) ClosestPrecedingFinger(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
 	out := new(Node)
 	err := c.cc.Invoke(ctx, "/chordpb.ChordService/ClosestPrecedingFinger", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) Notify(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error) {
+	out := new(Nil)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/Notify", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,6 +159,7 @@ type ChordServiceServer interface {
 	FindSuccesor(context.Context, *Id) (*Node, error)
 	FindPredecessor(context.Context, *Id) (*Node, error)
 	ClosestPrecedingFinger(context.Context, *Id) (*Node, error)
+	Notify(context.Context, *Node) (*Nil, error)
 	GetSuccessor(context.Context, *Nil) (*Node, error)
 	GetPredecessor(context.Context, *Nil) (*Node, error)
 	SetSuccessor(context.Context, *Node) (*Nil, error)
@@ -171,6 +182,9 @@ func (UnimplementedChordServiceServer) FindPredecessor(context.Context, *Id) (*N
 }
 func (UnimplementedChordServiceServer) ClosestPrecedingFinger(context.Context, *Id) (*Node, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClosestPrecedingFinger not implemented")
+}
+func (UnimplementedChordServiceServer) Notify(context.Context, *Node) (*Nil, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Notify not implemented")
 }
 func (UnimplementedChordServiceServer) GetSuccessor(context.Context, *Nil) (*Node, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSuccessor not implemented")
@@ -258,6 +272,24 @@ func _ChordService_ClosestPrecedingFinger_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChordServiceServer).ClosestPrecedingFinger(ctx, req.(*Id))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_Notify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).Notify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/Notify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).Notify(ctx, req.(*Node))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -424,6 +456,10 @@ var ChordService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClosestPrecedingFinger",
 			Handler:    _ChordService_ClosestPrecedingFinger_Handler,
+		},
+		{
+			MethodName: "Notify",
+			Handler:    _ChordService_Notify_Handler,
 		},
 		{
 			MethodName: "GetSuccessor",
