@@ -11,6 +11,8 @@ service ChordService {
 
     rpc Notify(Node) returns (Nil);
 
+    rpc UpdateFingerTable(UFTRequest) returns (Nil);
+
     rpc GetSuccessor(Nil) returns (Node);
     rpc GetPredecessor(Nil) returns (Node);
 
@@ -29,6 +31,11 @@ message Node {
 }
 
 message Nil {}
+
+message UFTRequest {
+    Node node = 1;
+    int64 idx = 2;
+}
 
 message Id {
     int64 id = 1;
