@@ -4,14 +4,56 @@ option go_package = "github.com/adrgs/proiectchord/chordpb";
 
 package chordpb;
 
-service HelloService {
-    rpc SayHello (HelloRequest) returns (HelloReply) {}
+service ChordService {
+    rpc FindSuccesor(Id) returns (Node);
+    rpc FindPredecessor(Id) returns (Node);
+    rpc ClosestPrecedingFinger(Id) returns (Node);
+
+    rpc GetSuccessor(Nil) returns (Node);
+    rpc GetPredecessor(Nil) returns (Node);
+
+    rpc SetSuccessor(Node) returns (Nil);
+    rpc SetPredecessor(Node) returns (Nil);
+
+    rpc Get(GetRequest) returns (GetReply);
+    rpc Store(StoreRequest) returns (Nil);
+    rpc GetFile(GetFileRequest) returns (GetFileRequest);
+    rpc StoreFile(StoreFileRequest) returns (Nil);
 }
 
-message HelloRequest {
-    string name = 1;
+message Node {
+    int64 id = 1;
+    string ip = 2;
 }
 
-message HelloReply {
-    string message = 1;
+message Nil {}
+
+message Id {
+    int64 id = 1;
+}
+
+message GetRequest {
+    string key = 1;
+}
+
+message GetReply {
+    string value = 1;
+}
+
+message StoreRequest {
+    string key = 1;
+    string value = 2;
+}
+
+message GetFileRequest {
+    string path = 1;
+}
+
+message GetFileReply {
+    bytes data = 1;
+}
+
+message StoreFileRequest {
+    string path = 1;
+    bytes data = 2;
 }

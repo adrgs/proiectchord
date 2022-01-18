@@ -18,84 +18,444 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// HelloServiceClient is the client API for HelloService service.
+// ChordServiceClient is the client API for ChordService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type HelloServiceClient interface {
-	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+type ChordServiceClient interface {
+	FindSuccesor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
+	FindPredecessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
+	ClosestPrecedingFinger(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
+	GetSuccessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error)
+	GetPredecessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error)
+	SetSuccessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
+	SetPredecessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetReply, error)
+	Store(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*Nil, error)
+	GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileRequest, error)
+	StoreFile(ctx context.Context, in *StoreFileRequest, opts ...grpc.CallOption) (*Nil, error)
 }
 
-type helloServiceClient struct {
+type chordServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewHelloServiceClient(cc grpc.ClientConnInterface) HelloServiceClient {
-	return &helloServiceClient{cc}
+func NewChordServiceClient(cc grpc.ClientConnInterface) ChordServiceClient {
+	return &chordServiceClient{cc}
 }
 
-func (c *helloServiceClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
-	out := new(HelloReply)
-	err := c.cc.Invoke(ctx, "/chordpb.HelloService/SayHello", in, out, opts...)
+func (c *chordServiceClient) FindSuccesor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
+	out := new(Node)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/FindSuccesor", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// HelloServiceServer is the server API for HelloService service.
-// All implementations should embed UnimplementedHelloServiceServer
+func (c *chordServiceClient) FindPredecessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
+	out := new(Node)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/FindPredecessor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) ClosestPrecedingFinger(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
+	out := new(Node)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/ClosestPrecedingFinger", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) GetSuccessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error) {
+	out := new(Node)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/GetSuccessor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) GetPredecessor(ctx context.Context, in *Nil, opts ...grpc.CallOption) (*Node, error) {
+	out := new(Node)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/GetPredecessor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) SetSuccessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error) {
+	out := new(Nil)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/SetSuccessor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) SetPredecessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error) {
+	out := new(Nil)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/SetPredecessor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetReply, error) {
+	out := new(GetReply)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) Store(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*Nil, error) {
+	out := new(Nil)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/Store", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileRequest, error) {
+	out := new(GetFileRequest)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/GetFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chordServiceClient) StoreFile(ctx context.Context, in *StoreFileRequest, opts ...grpc.CallOption) (*Nil, error) {
+	out := new(Nil)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/StoreFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ChordServiceServer is the server API for ChordService service.
+// All implementations should embed UnimplementedChordServiceServer
 // for forward compatibility
-type HelloServiceServer interface {
-	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
+type ChordServiceServer interface {
+	FindSuccesor(context.Context, *Id) (*Node, error)
+	FindPredecessor(context.Context, *Id) (*Node, error)
+	ClosestPrecedingFinger(context.Context, *Id) (*Node, error)
+	GetSuccessor(context.Context, *Nil) (*Node, error)
+	GetPredecessor(context.Context, *Nil) (*Node, error)
+	SetSuccessor(context.Context, *Node) (*Nil, error)
+	SetPredecessor(context.Context, *Node) (*Nil, error)
+	Get(context.Context, *GetRequest) (*GetReply, error)
+	Store(context.Context, *StoreRequest) (*Nil, error)
+	GetFile(context.Context, *GetFileRequest) (*GetFileRequest, error)
+	StoreFile(context.Context, *StoreFileRequest) (*Nil, error)
 }
 
-// UnimplementedHelloServiceServer should be embedded to have forward compatible implementations.
-type UnimplementedHelloServiceServer struct {
+// UnimplementedChordServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedChordServiceServer struct {
 }
 
-func (UnimplementedHelloServiceServer) SayHello(context.Context, *HelloRequest) (*HelloReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
+func (UnimplementedChordServiceServer) FindSuccesor(context.Context, *Id) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindSuccesor not implemented")
+}
+func (UnimplementedChordServiceServer) FindPredecessor(context.Context, *Id) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindPredecessor not implemented")
+}
+func (UnimplementedChordServiceServer) ClosestPrecedingFinger(context.Context, *Id) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClosestPrecedingFinger not implemented")
+}
+func (UnimplementedChordServiceServer) GetSuccessor(context.Context, *Nil) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSuccessor not implemented")
+}
+func (UnimplementedChordServiceServer) GetPredecessor(context.Context, *Nil) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPredecessor not implemented")
+}
+func (UnimplementedChordServiceServer) SetSuccessor(context.Context, *Node) (*Nil, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSuccessor not implemented")
+}
+func (UnimplementedChordServiceServer) SetPredecessor(context.Context, *Node) (*Nil, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPredecessor not implemented")
+}
+func (UnimplementedChordServiceServer) Get(context.Context, *GetRequest) (*GetReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedChordServiceServer) Store(context.Context, *StoreRequest) (*Nil, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Store not implemented")
+}
+func (UnimplementedChordServiceServer) GetFile(context.Context, *GetFileRequest) (*GetFileRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFile not implemented")
+}
+func (UnimplementedChordServiceServer) StoreFile(context.Context, *StoreFileRequest) (*Nil, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StoreFile not implemented")
 }
 
-// UnsafeHelloServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to HelloServiceServer will
+// UnsafeChordServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChordServiceServer will
 // result in compilation errors.
-type UnsafeHelloServiceServer interface {
-	mustEmbedUnimplementedHelloServiceServer()
+type UnsafeChordServiceServer interface {
+	mustEmbedUnimplementedChordServiceServer()
 }
 
-func RegisterHelloServiceServer(s grpc.ServiceRegistrar, srv HelloServiceServer) {
-	s.RegisterService(&HelloService_ServiceDesc, srv)
+func RegisterChordServiceServer(s grpc.ServiceRegistrar, srv ChordServiceServer) {
+	s.RegisterService(&ChordService_ServiceDesc, srv)
 }
 
-func _HelloService_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+func _ChordService_FindSuccesor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Id)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HelloServiceServer).SayHello(ctx, in)
+		return srv.(ChordServiceServer).FindSuccesor(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/chordpb.HelloService/SayHello",
+		FullMethod: "/chordpb.ChordService/FindSuccesor",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HelloServiceServer).SayHello(ctx, req.(*HelloRequest))
+		return srv.(ChordServiceServer).FindSuccesor(ctx, req.(*Id))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// HelloService_ServiceDesc is the grpc.ServiceDesc for HelloService service.
+func _ChordService_FindPredecessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Id)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).FindPredecessor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/FindPredecessor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).FindPredecessor(ctx, req.(*Id))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_ClosestPrecedingFinger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Id)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).ClosestPrecedingFinger(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/ClosestPrecedingFinger",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).ClosestPrecedingFinger(ctx, req.(*Id))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_GetSuccessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Nil)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).GetSuccessor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/GetSuccessor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).GetSuccessor(ctx, req.(*Nil))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_GetPredecessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Nil)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).GetPredecessor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/GetPredecessor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).GetPredecessor(ctx, req.(*Nil))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_SetSuccessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).SetSuccessor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/SetSuccessor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).SetSuccessor(ctx, req.(*Node))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_SetPredecessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).SetPredecessor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/SetPredecessor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).SetPredecessor(ctx, req.(*Node))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).Get(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_Store_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).Store(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/Store",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).Store(ctx, req.(*StoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_GetFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).GetFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/GetFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).GetFile(ctx, req.(*GetFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChordService_StoreFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChordServiceServer).StoreFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chordpb.ChordService/StoreFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChordServiceServer).StoreFile(ctx, req.(*StoreFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ChordService_ServiceDesc is the grpc.ServiceDesc for ChordService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var HelloService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "chordpb.HelloService",
-	HandlerType: (*HelloServiceServer)(nil),
+var ChordService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "chordpb.ChordService",
+	HandlerType: (*ChordServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SayHello",
-			Handler:    _HelloService_SayHello_Handler,
+			MethodName: "FindSuccesor",
+			Handler:    _ChordService_FindSuccesor_Handler,
+		},
+		{
+			MethodName: "FindPredecessor",
+			Handler:    _ChordService_FindPredecessor_Handler,
+		},
+		{
+			MethodName: "ClosestPrecedingFinger",
+			Handler:    _ChordService_ClosestPrecedingFinger_Handler,
+		},
+		{
+			MethodName: "GetSuccessor",
+			Handler:    _ChordService_GetSuccessor_Handler,
+		},
+		{
+			MethodName: "GetPredecessor",
+			Handler:    _ChordService_GetPredecessor_Handler,
+		},
+		{
+			MethodName: "SetSuccessor",
+			Handler:    _ChordService_SetSuccessor_Handler,
+		},
+		{
+			MethodName: "SetPredecessor",
+			Handler:    _ChordService_SetPredecessor_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _ChordService_Get_Handler,
+		},
+		{
+			MethodName: "Store",
+			Handler:    _ChordService_Store_Handler,
+		},
+		{
+			MethodName: "GetFile",
+			Handler:    _ChordService_GetFile_Handler,
+		},
+		{
+			MethodName: "StoreFile",
+			Handler:    _ChordService_StoreFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
