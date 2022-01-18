@@ -204,7 +204,7 @@ func (chordNode *ChordNode) Join() error {
 	if err != nil {
 		return err
 	}
-	if len(nodes) == 0 {
+	if len(nodes) == 1 {
 		chordNode.setPredecessor(chordNode.Node)
 		chordNode.setSuccessor(chordNode.Node)
 		for i := 1; i < CHORD_M; i++ {
