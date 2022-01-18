@@ -96,7 +96,7 @@ func NewChordNode(ip string) (*ChordNode, error) {
 
 	go chordNode.GrpcServer.Serve(lis)
 
-	if err = chordNode.join(); err != nil {
+	if err = chordNode.Join(); err != nil {
 		log.Fatalf("Failed to join ring: %v", err)
 	}
 
@@ -193,7 +193,7 @@ func (chordNode *ChordNode) closestPrecedingFinger(id int64) *chordpb.Node {
 	return chordNode.Node
 }
 
-func (chordNode *ChordNode) join() error {
+func (chordNode *ChordNode) Join() error {
 	config := api.DefaultConfig()
 	config.Address = "consul:8500"
 	consul, err := api.NewClient(config)

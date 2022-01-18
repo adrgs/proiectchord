@@ -1,28 +1,31 @@
 package main
 
 import (
-	"os"
+	"log"
+	"net"
 
 	"github.com/adrgs/proiectchord/chord"
-	"github.com/urfave/cli"
 )
 
-var conf config
+func GetOutboundIP() string {
+	conn, err := net.Dial("udp", "consul:8500")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
 
-func init() {
-	conf = config{}
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String()
 }
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "P2P-GRPC"
-	app.Usage = "Simple p2p grpc Hello message service testing the limits of p2p"
-	app.Flags = AppConfigFlags
-	app.Version = "v0.0.1"
-	app.Action = func(cli *cli.Context) error { return nil }
-	app.Run(os.Args)
 
-	node := &chord.Node{Name: conf.NodeName, Addr: conf.NodeAddr, SDAddress: conf.ServiceDiscoveryAddress}
+	node, err := chord.NewChordNode(GetOutboundIP())
 
-	node.Start()
+	if err != nil {
+		log.Fatalf("Couldn't start node")
+	}
+
+	node.Join()
 }
