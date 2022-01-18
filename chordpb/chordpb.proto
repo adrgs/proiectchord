@@ -5,7 +5,7 @@ option go_package = "github.com/adrgs/proiectchord/chordpb";
 package chordpb;
 
 service ChordService {
-    rpc FindSuccesor(Id) returns (Node);
+    rpc FindSuccessor(Id) returns (Node);
     rpc FindPredecessor(Id) returns (Node);
     rpc ClosestPrecedingFinger(Id) returns (Node);
 

@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChordServiceClient interface {
-	FindSuccesor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
+	FindSuccessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
 	FindPredecessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
 	ClosestPrecedingFinger(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error)
 	Notify(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
@@ -45,9 +45,9 @@ func NewChordServiceClient(cc grpc.ClientConnInterface) ChordServiceClient {
 	return &chordServiceClient{cc}
 }
 
-func (c *chordServiceClient) FindSuccesor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
+func (c *chordServiceClient) FindSuccessor(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Node, error) {
 	out := new(Node)
-	err := c.cc.Invoke(ctx, "/chordpb.ChordService/FindSuccesor", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/chordpb.ChordService/FindSuccessor", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (c *chordServiceClient) StoreFile(ctx context.Context, in *StoreFileRequest
 // All implementations should embed UnimplementedChordServiceServer
 // for forward compatibility
 type ChordServiceServer interface {
-	FindSuccesor(context.Context, *Id) (*Node, error)
+	FindSuccessor(context.Context, *Id) (*Node, error)
 	FindPredecessor(context.Context, *Id) (*Node, error)
 	ClosestPrecedingFinger(context.Context, *Id) (*Node, error)
 	Notify(context.Context, *Node) (*Nil, error)
@@ -185,8 +185,8 @@ type ChordServiceServer interface {
 type UnimplementedChordServiceServer struct {
 }
 
-func (UnimplementedChordServiceServer) FindSuccesor(context.Context, *Id) (*Node, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindSuccesor not implemented")
+func (UnimplementedChordServiceServer) FindSuccessor(context.Context, *Id) (*Node, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindSuccessor not implemented")
 }
 func (UnimplementedChordServiceServer) FindPredecessor(context.Context, *Id) (*Node, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindPredecessor not implemented")
@@ -236,20 +236,20 @@ func RegisterChordServiceServer(s grpc.ServiceRegistrar, srv ChordServiceServer)
 	s.RegisterService(&ChordService_ServiceDesc, srv)
 }
 
-func _ChordService_FindSuccesor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ChordService_FindSuccessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Id)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChordServiceServer).FindSuccesor(ctx, in)
+		return srv.(ChordServiceServer).FindSuccessor(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/chordpb.ChordService/FindSuccesor",
+		FullMethod: "/chordpb.ChordService/FindSuccessor",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChordServiceServer).FindSuccesor(ctx, req.(*Id))
+		return srv.(ChordServiceServer).FindSuccessor(ctx, req.(*Id))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -478,8 +478,8 @@ var ChordService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ChordServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "FindSuccesor",
-			Handler:    _ChordService_FindSuccesor_Handler,
+			MethodName: "FindSuccessor",
+			Handler:    _ChordService_FindSuccessor_Handler,
 		},
 		{
 			MethodName: "FindPredecessor",
