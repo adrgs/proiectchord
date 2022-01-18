@@ -21,7 +21,7 @@ service ChordService {
 
     rpc Get(GetRequest) returns (GetReply);
     rpc Store(StoreRequest) returns (Nil);
-    rpc GetFile(GetFileRequest) returns (GetFileRequest);
+    rpc GetFile(GetFileRequest) returns (GetFileReply);
     rpc StoreFile(StoreFileRequest) returns (Nil);
 }
 

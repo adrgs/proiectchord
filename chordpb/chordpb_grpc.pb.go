@@ -33,7 +33,7 @@ type ChordServiceClient interface {
 	SetPredecessor(ctx context.Context, in *Node, opts ...grpc.CallOption) (*Nil, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetReply, error)
 	Store(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*Nil, error)
-	GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileRequest, error)
+	GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileReply, error)
 	StoreFile(ctx context.Context, in *StoreFileRequest, opts ...grpc.CallOption) (*Nil, error)
 }
 
@@ -144,8 +144,8 @@ func (c *chordServiceClient) Store(ctx context.Context, in *StoreRequest, opts .
 	return out, nil
 }
 
-func (c *chordServiceClient) GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileRequest, error) {
-	out := new(GetFileRequest)
+func (c *chordServiceClient) GetFile(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileReply, error) {
+	out := new(GetFileReply)
 	err := c.cc.Invoke(ctx, "/chordpb.ChordService/GetFile", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ type ChordServiceServer interface {
 	SetPredecessor(context.Context, *Node) (*Nil, error)
 	Get(context.Context, *GetRequest) (*GetReply, error)
 	Store(context.Context, *StoreRequest) (*Nil, error)
-	GetFile(context.Context, *GetFileRequest) (*GetFileRequest, error)
+	GetFile(context.Context, *GetFileRequest) (*GetFileReply, error)
 	StoreFile(context.Context, *StoreFileRequest) (*Nil, error)
 }
 
@@ -218,7 +218,7 @@ func (UnimplementedChordServiceServer) Get(context.Context, *GetRequest) (*GetRe
 func (UnimplementedChordServiceServer) Store(context.Context, *StoreRequest) (*Nil, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Store not implemented")
 }
-func (UnimplementedChordServiceServer) GetFile(context.Context, *GetFileRequest) (*GetFileRequest, error) {
+func (UnimplementedChordServiceServer) GetFile(context.Context, *GetFileRequest) (*GetFileReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFile not implemented")
 }
 func (UnimplementedChordServiceServer) StoreFile(context.Context, *StoreFileRequest) (*Nil, error) {
