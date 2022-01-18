@@ -192,29 +192,48 @@ func (chordNode *ChordNode) closestPrecedingFinger(id int64) *chordpb.Node {
 	return chordNode.Node
 }
 
+var Client *api.Client
+
+func (chordNode *ChordNode) Leave() {
+	Client.Agent().ServiceDeregister(chordNode.Ip)
+}
+
 func (chordNode *ChordNode) Join() error {
 	config := api.DefaultConfig()
 	config.Address = "consul:8500"
-	consul, err := api.NewClient(config)
-	if err != nil {
-		return err
+	Client, _ = api.NewClient(config)
+
+	agent := Client.Agent()
+	//interval := time.Duration(10) * time.Second
+	//deregister := time.Duration(1) * time.Minute
+
+	reg := &api.AgentServiceRegistration{
+		ID:      chordNode.Ip, // name of service node
+		Name:    "chord",      // Service Name
+		Port:    13337,        // Service Port
+		Address: chordNode.Ip,
 	}
 
-	nodes, _, err := consul.Catalog().Nodes(&api.QueryOptions{})
+	err := agent.ServiceRegister(reg)
+
+	addrs, _, err := Client.Health().Service("chord", "", true, nil)
+
 	if err != nil {
 		return err
 	}
-	if len(nodes) == 1 {
+	if len(addrs) == 1 {
 		chordNode.setPredecessor(chordNode.Node)
 		chordNode.setSuccessor(chordNode.Node)
 		for i := 1; i < CHORD_M; i++ {
 			chordNode.setFingerTable(i, chordNode.Node)
 		}
+
+		return nil
 	}
 
-	for _, node := range nodes {
-		if chordNode.Ip != node.Address {
-			chordNode.initFingerTable(node.Address)
+	for _, addr := range addrs {
+		if chordNode.Ip != addr.Service.Address {
+			chordNode.initFingerTable(addr.Service.Address)
 			chordNode.updateOthers()
 			break
 		}
@@ -408,6 +427,14 @@ func (chordNode *ChordNode) get(key string) (string, bool) {
 	val, err := chordServiceClient.Get(context.Background(), &chordpb.GetRequest{Key: key})
 
 	return val.Value, err == nil
+}
+
+func (chordNode *ChordNode) GetChord(key string) (string, bool) {
+	return chordNode.get(key)
+}
+
+func (chordNode *ChordNode) StoreChord(key string, value string) error {
+	return chordNode.store(key, value)
 }
 
 func (chordNode *ChordNode) store(key string, value string) error {
