@@ -9,7 +9,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -213,10 +212,13 @@ func (chordNode *ChordNode) Join() error {
 		}
 	}
 
-	ip := strings.Split(nodes[0].Address, ":")[0]
-
-	chordNode.initFingerTable(ip)
-	chordNode.updateOthers()
+	for _, node := range nodes {
+		if chordNode.Ip != node.Address {
+			chordNode.initFingerTable(node.Address)
+			chordNode.updateOthers()
+			break
+		}
+	}
 
 	return nil
 }

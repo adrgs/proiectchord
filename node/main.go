@@ -8,7 +8,7 @@ import (
 )
 
 func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "consul:8500")
+	conn, err := net.Dial("udp", "127.0.0.1:53")
 	if err != nil {
 		log.Fatal(err)
 	}
