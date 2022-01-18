@@ -366,7 +366,9 @@ func (chordNode *ChordNode) setSuccessor(successorNode *chordpb.Node) {
 	chordNode.SuccessorMutex.Lock()
 	chordNode.Successor = successorNode
 	chordNode.SuccessorMutex.Unlock()
-	chordNode.setFingerTable(0, successorNode)
+	chordNode.FingerTableMutex.Lock()
+	chordNode.FingerTable[0] = successorNode
+	chordNode.FingerTableMutex.Unlock()
 }
 
 func (chordNode *ChordNode) setPredecessor(predecessorNode *chordpb.Node) {
@@ -380,7 +382,9 @@ func (chordNode *ChordNode) setFingerTable(i int, node *chordpb.Node) {
 	chordNode.FingerTable[i] = node
 	chordNode.FingerTableMutex.Unlock()
 	if i == 0 {
-		chordNode.setSuccessor(node)
+		chordNode.SuccessorMutex.Lock()
+		chordNode.Successor = node
+		chordNode.SuccessorMutex.Unlock()
 	}
 }
 
